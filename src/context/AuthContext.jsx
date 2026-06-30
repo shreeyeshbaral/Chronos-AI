@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /*
 =========================================
 Auth Context
@@ -12,6 +13,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 
 import { auth } from "../firebase/firebaseConfig";
+import { subscribeToTasks } from "../services/taskService";
 
 // Create Context
 const AuthContext = createContext();
@@ -25,28 +27,59 @@ export function AuthProvider({ children }) {
   // Loading state
   const [loading, setLoading] = useState(true);
 
+  // centralized tasks states
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(true);
+
   useEffect(() => {
+    let unsubscribeTasks = null;
 
     // Listen for auth changes
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-
       setLoading(false);
 
+      if (unsubscribeTasks) {
+        unsubscribeTasks();
+        unsubscribeTasks = null;
+      }
+
+      if (currentUser) {
+        setTasksLoading(true);
+        unsubscribeTasks = subscribeToTasks(
+          currentUser.uid,
+          (data) => {
+            setTasks(data);
+            setTasksLoading(false);
+          },
+          (error) => {
+            console.error("Centralized tasks subscription error:", error);
+            setTasks([]);
+            setTasksLoading(false);
+          }
+        );
+      } else {
+        setTasks([]);
+        setTasksLoading(false);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeTasks) {
+        unsubscribeTasks();
+      }
+    };
 
   }, []);
 
   return (
 
     <AuthContext.Provider
-      value={{ user }}
+      value={{ user, loading, tasks, setTasks, tasksLoading }}
     >
 
-      {!loading && children}
+      {children}
 
     </AuthContext.Provider>
 

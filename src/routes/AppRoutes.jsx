@@ -11,7 +11,9 @@ import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Calendar from "../pages/Calendar";
 import Assistant from "../pages/Assistant";
+import Analytics from "../pages/Analytics";
 import Settings from "../pages/Settings";
+import AdaptiveWorkspace from "../pages/AdaptiveWorkspace";
 import NotFound from "../pages/NotFound";
 
 import ProtectedRoute from "./ProtectedRoute";
@@ -51,10 +53,28 @@ function AppRoutes() {
         />
 
         <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/assistant"
           element={
             <ProtectedRoute>
               <Assistant />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/adaptive-workspace"
+          element={
+            <ProtectedRoute>
+              <AdaptiveWorkspace />
             </ProtectedRoute>
           }
         />

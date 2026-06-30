@@ -1,6 +1,7 @@
-function Button({ text, primary = true }) {
+function Button({ text, primary = true, onClick }) {
   return (
     <button
+      onClick={onClick}
       className={`
         px-8 py-4
         rounded-2xl

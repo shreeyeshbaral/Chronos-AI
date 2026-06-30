@@ -30,7 +30,6 @@ import {
   updateDoc,
   query,
   where,
-  orderBy,
   onSnapshot,
 } from "firebase/firestore";
 
@@ -66,18 +65,14 @@ export async function createTask(task) {
 // Real-Time Listener
 // ============================
 
-export function subscribeToTasks(callback) {
-  const user = auth.currentUser;
-
-  if (!user) {
-    callback([]);
+export function subscribeToTasks(userId, callback, onError) {
+  if (!userId) {
     return () => {};
   }
 
   const q = query(
     taskCollection,
-    where("userId", "==", user.uid),
-    orderBy("createdAt", "desc")
+    where("userId", "==", userId)
   );
 
   return onSnapshot(
@@ -88,10 +83,20 @@ export function subscribeToTasks(callback) {
         ...doc.data(),
       }));
 
-      callback(tasks);
+      // Sort by createdAt descending in memory
+      const sortedTasks = tasks.sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() ?? a.createdAt?.seconds ?? 0;
+        const bTime = b.createdAt?.toMillis?.() ?? b.createdAt?.seconds ?? 0;
+        return bTime - aTime;
+      });
+
+      callback(sortedTasks);
     },
     (error) => {
       console.error("Realtime Firestore Error:", error);
+      if (typeof onError === "function") {
+        onError(error);
+      }
     }
   );
 }
@@ -122,4 +127,28 @@ export async function updateTask(taskId, updates) {
   await updateDoc(doc(db, "tasks", taskId), {
     ...updates,
   });
+}
+
+// ============================
+// Update Task Progress
+// ============================
+
+export async function updateTaskProgress(taskId, progress, progressReason, completed) {
+  const updateData = {
+    progress,
+    progressReason,
+    progressUpdatedAt: serverTimestamp(),
+  };
+
+  if (completed) {
+    updateData.completed = true;
+    updateData.completedAt = serverTimestamp();
+    updateData.status = "completed";
+  } else {
+    updateData.completed = false;
+    updateData.completedAt = null;
+    updateData.status = "pending";
+  }
+
+  await updateDoc(doc(db, "tasks", taskId), updateData);
 }

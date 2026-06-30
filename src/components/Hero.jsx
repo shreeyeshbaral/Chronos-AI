@@ -1,6 +1,20 @@
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Button from "./Button";
 import AICard from "./AICard";
+
 function Hero() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleStartPlanning = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
     <section className="flex flex-col items-center justify-center text-center mt-24 px-6">
 
@@ -20,9 +34,8 @@ function Hero() {
         Plan smarter, prioritize tasks, and let AI organize your schedule before deadlines become emergencies.
       </p>
 
-      <div className="flex gap-4 mt-10">
-        <Button text="Start Planning" />
-        <Button text="Learn More" />
+      <div className="mt-10">
+        <Button text="Start Planning" onClick={handleStartPlanning} />
       </div>
 
       <AICard />

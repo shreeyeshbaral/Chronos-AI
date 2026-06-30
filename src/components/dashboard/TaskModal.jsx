@@ -20,18 +20,19 @@ import {
   FileText,
   Type,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
-import { createTask } from "../../services/taskService";
+import { createTask, updateTask } from "../../services/taskService";
 
-function TaskModal({ isOpen, onClose }) {
+function TaskModal({ isOpen, onClose, editTask }) {
   // -------------------------
   // Form State
   // -------------------------
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("Medium");
-  const [deadline, setDeadline] = useState("");
+  const [title, setTitle] = useState(editTask?.title || "");
+  const [description, setDescription] = useState(editTask?.description || "");
+  const [priority, setPriority] = useState(editTask?.priority || "Medium");
+  const [deadline, setDeadline] = useState(editTask?.deadline || "");
 
   const [saving, setSaving] = useState(false);
 
@@ -77,22 +78,34 @@ function TaskModal({ isOpen, onClose }) {
     }
   }
 
-  // -------------------------
-  // Create Task
-  // -------------------------
-
-  async function handleCreateTask() {
-    if (!title.trim()) return;
+  async function handleSubmit() {
+    if (!title.trim()) {
+      toast.error("Task title is required.");
+      return;
+    }
 
     try {
       setSaving(true);
 
-      await createTask({
-        title,
-        description,
-        priority,
-        deadline,
-      });
+      if (editTask?.id) {
+        await updateTask(editTask.id, {
+          title,
+          description,
+          priority,
+          deadline,
+        });
+
+        toast.success("Task updated successfully.");
+      } else {
+        await createTask({
+          title,
+          description,
+          priority,
+          deadline,
+        });
+
+        toast.success("Task created successfully.");
+      }
 
       setTitle("");
       setDescription("");
@@ -102,6 +115,7 @@ function TaskModal({ isOpen, onClose }) {
       onClose();
     } catch (error) {
       console.error(error);
+      toast.error(editTask?.id ? "Failed to update task." : "Failed to create task.");
     } finally {
       setSaving(false);
     }
@@ -145,7 +159,7 @@ function TaskModal({ isOpen, onClose }) {
         <div className="flex items-center justify-between border-b border-slate-800 p-7">
 
           <h2 className="text-2xl font-bold">
-            Create New Task
+            {editTask?.id ? "Edit Task" : "Create New Task"}
           </h2>
 
           <button
@@ -306,7 +320,7 @@ function TaskModal({ isOpen, onClose }) {
 
           <button
             disabled={saving}
-            onClick={handleCreateTask}
+            onClick={handleSubmit}
             className="
               rounded-xl
               bg-cyan-500
@@ -317,7 +331,13 @@ function TaskModal({ isOpen, onClose }) {
               disabled:opacity-50
             "
           >
-            {saving ? "Creating..." : "Create Task"}
+            {saving
+              ? editTask?.id
+                ? "Updating..."
+                : "Creating..."
+              : editTask?.id
+              ? "Update Task"
+              : "Create Task"}
           </button>
 
         </div>

@@ -1,4 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Global custom theme colors for Neuro Mode */
+@theme {
+  --color-neuro-bg: var(--neuro-bg);
+  --color-neuro-card: var(--neuro-card);
+  --color-neuro-border: var(--neuro-border);
+  --color-neuro-primary: var(--neuro-primary);
+  --color-neuro-accent: var(--neuro-accent);
+  --color-neuro-text: var(--neuro-text);
+  --color-neuro-text-muted: var(--neuro-text-muted);
+}
+
+/* =========================================
+   Theme / Mode Definitions
+   ========================================= */
+
+:root {
+  /* Default Mode */
+  --neuro-bg: #020617;
+  --neuro-card: #0F172A;
+  --neuro-border: #1E293B;
+  --neuro-primary: #06B6D4;
+  --neuro-accent: #0891B2;
+  --neuro-text: #FFFFFF;
+  --neuro-text-muted: #94A3B8;
+
+  --neuro-font-family: inherit;
+  --neuro-line-height: inherit;
+  --neuro-letter-spacing: normal;
+  --neuro-font-size-multiplier: 1;
+  --neuro-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* ADHD Focus Mode */
+[data-neuro-mode="ADHD"] {
+  --neuro-bg: #0F172A;
+  --neuro-card: #1E293B;
+  --neuro-border: #334155;
+  --neuro-primary: #FBBF24;
+  --neuro-accent: #F59E0B;
+  --neuro-text: #FFFFFF;
+  --neuro-text-muted: #CBD5E1;
+
+  --neuro-font-size-multiplier: 1.05;
+  --neuro-shadow: none;
+}
+
+/* Autism Calm Mode */
+[data-neuro-mode="Autism"] {
+  --neuro-bg: #EAF7F7;
+  --neuro-card: #D7F3E3;
+  --neuro-border: #BCE2CF;
+  --neuro-primary: #2A9D8F;
+  --neuro-accent: #4CBFA6;
+  --neuro-text: #264653;
+  --neuro-text-muted: #52796F;
+
+  --neuro-shadow: none;
+}
+
+/* Migraine Relief Mode */
+[data-neuro-mode="Migraine"] {
+  --neuro-bg: #2C2A27;
+  --neuro-card: #3A3733;
+  --neuro-border: #4A4641;
+  --neuro-primary: #B08968;
+  --neuro-accent: #A3B18A;
+  --neuro-text: #F2E9E4;
+  --neuro-text-muted: #D5C7BC;
+
+  --neuro-font-size-multiplier: 1.15;
+  --neuro-shadow: none;
+}
+
+/* Dyslexia Friendly Mode */
+[data-neuro-mode="Dyslexia"] {
+  --neuro-bg: #FFFDF5;
+  --neuro-card: #FAF6EB;
+  --neuro-border: #E8E0CB;
+  --neuro-primary: #2563EB;
+  --neuro-accent: #0F766E;
+  --neuro-text: #111827;
+  --neuro-text-muted: #374151;
+
+  --neuro-font-family: 'Lexend', sans-serif;
+  --neuro-line-height: 1.9;
+  --neuro-letter-spacing: 0.05em;
+  --neuro-font-size-multiplier: 1.25;
+  --neuro-shadow: none;
+}
+
+/* Apply global dynamic preferences */
+html {
+  font-size: calc(100% * var(--neuro-font-size-multiplier, 1)) !important;
+  transition: font-size 250ms ease-in-out;
+}
+
+body {
+  font-family: var(--neuro-font-family) !important;
+  line-height: var(--neuro-line-height) !important;
+  letter-spacing: var(--neuro-letter-spacing) !important;
+  background-color: var(--neuro-bg) !important;
+  color: var(--neuro-text) !important;
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
+}
+
+/* Redefine Tooltip Variables to Sync with Neuro Mode */
+:root {
+  --bg-card: var(--neuro-card);
+  --border-main: var(--neuro-border);
+  --text-main: var(--neuro-text);
+}
+
+/* Redefine Tailwind backgrounds globally to use neuro variables */
+body,
+.bg-slate-950,
+.bg-slate-50,
+.bg-slate-100,
+.bg-slate-50\/50,
+.bg-slate-950\/50 {
+  background-color: var(--neuro-bg) !important;
+  background-image: none !important;
+}
+
+.bg-slate-900,
+.bg-white,
+.bg-slate-900\/50,
+.bg-slate-905,
+.bg-slate-900\/90,
+.bg-slate-950\/90 {
+  background-color: var(--neuro-card) !important;
+}
+
+.border-slate-800,
+.border-slate-700,
+.border-slate-200,
+.border-slate-100,
+.border-slate-300 {
+  border-color: var(--neuro-border) !important;
+}
+
+.bg-cyan-500,
+.bg-cyan-600 {
+  background-color: var(--neuro-primary) !important;
+  color: var(--neuro-bg) !important;
+}
+
+.hover\:bg-cyan-600:hover,
+.hover\:bg-cyan-500:hover {
+  background-color: var(--neuro-accent) !important;
+  color: var(--neuro-bg) !important;
+}
+
+/* Text color mappings */
+.text-white,
+.text-slate-900,
+.text-slate-800,
+.text-slate-700,
+.text-slate-950 {
+  color: var(--neuro-text) !important;
+}
+
+.text-slate-400,
+.text-slate-500,
+.text-slate-600,
+.text-slate-650 {
+  color: var(--neuro-text-muted) !important;
+}
+
+/* Icon colors mapping */
+svg.text-slate-400,
+svg.text-slate-550,
+svg.text-slate-500 {
+  color: var(--neuro-text-muted) !important;
+}
+
+/* Ensure inputs, select boxes and details use correct colors */
+input,
+select,
+textarea {
+  background-color: var(--neuro-card) !important;
+  color: var(--neuro-text) !important;
+  border-color: var(--neuro-border) !important;
+}
+
+/* Smooth transitions globally */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 250ms;
+}
+
+/* Reduced motion for ADHD and Migraine Relief modes */
+[data-neuro-mode="ADHD"] *,
+[data-neuro-mode="Migraine"] * {
+  animation: none !important;
+  transition-duration: 50ms !important;
+}
+
+/* Smooth slow transition for Autism Calm Mode */
+[data-neuro-mode="Autism"] * {
+  transition-duration: 400ms !important;
+}
+
+/* Hide decorative blobs in ADHD and Migraine modes */
+[data-neuro-mode="ADHD"] .decorative-blob,
+[data-neuro-mode="Migraine"] .decorative-blob,
+[data-neuro-mode="ADHD"] .bg-gradient-to-tr,
+[data-neuro-mode="Migraine"] .bg-gradient-to-tr {
+  display: none !important;
+}
+
+:root {
+  --bg-card: #ffffff;
+  --border-main: #e2e8f0;
+  --text-main: #0f172a;
+}
+
+.dark {
+  --bg-card: #0f172a;
+  --border-main: #1e293b;
+  --text-main: #ffffff;
+}
 @keyframes blob {
 
   0% {

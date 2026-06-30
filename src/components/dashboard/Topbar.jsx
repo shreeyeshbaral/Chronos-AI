@@ -1,35 +1,19 @@
 /*
 =========================================
 Topbar Component
------------------------------------------
-Purpose:
-Displays the top navigation bar inside
-the dashboard.
-
-Features:
-- Search bar
-- Current date
-- Notification button
-- User avatar
 =========================================
 */
 
-// ============================
-// Imports
-// ============================
-
+import { getAuth } from "firebase/auth";
 import {
   Search,
   Bell,
 } from "lucide-react";
 
-// ============================
-// Component
-// ============================
+function Topbar({ search, setSearch }) {
+  const auth = getAuth();
+  const user = auth.currentUser;
 
-function Topbar() {
-
-  // Get today's date
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     day: "numeric",
@@ -37,11 +21,15 @@ function Topbar() {
     year: "numeric",
   });
 
-  return (
-    <header className="h-20 border-b border-slate-800 bg-slate-950 flex items-center justify-between px-8">
+  const avatar = (
+    user?.displayName?.charAt(0) ||
+    user?.email?.charAt(0) ||
+    "U"
+  ).toUpperCase();
 
-      {/* Search Bar */}
-      <div className="relative w-96">
+  return (
+    <header className="flex flex-col gap-4 border-b border-slate-800 bg-slate-950 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8 md:py-6">
+      <div className="relative w-full max-w-full md:max-w-md">
 
         <Search
           size={18}
@@ -49,76 +37,36 @@ function Topbar() {
         />
 
         <input
-          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search tasks..."
           className="
             w-full
-            bg-slate-900
+            rounded-xl
             border
             border-slate-800
-            rounded-xl
-
+            bg-slate-900
             py-3
             pl-11
             pr-4
-
-            text-white
-            placeholder:text-slate-500
-
             outline-none
-            focus:border-cyan-500
             transition
+            focus:border-cyan-500
           "
         />
 
       </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-6">
+      <div className="flex flex-wrap items-center gap-4 justify-between w-full md:w-auto">
+        <p className="hidden text-sm text-slate-400 lg:block">{today}</p>
 
-        {/* Date */}
-        <p className="text-slate-400 text-sm">
-          {today}
-        </p>
-
-        {/* Notification Button */}
-        <button
-          className="
-            p-3
-            rounded-xl
-            bg-slate-900
-            border
-            border-slate-800
-
-            hover:border-cyan-500
-            transition
-          "
-        >
+        <button className="rounded-xl border border-slate-800 bg-slate-900 p-3 transition hover:border-cyan-500">
           <Bell size={20} />
         </button>
 
-        {/* User Avatar */}
-        <div
-          className="
-            w-11
-            h-11
-
-            rounded-full
-
-            bg-gradient-to-r
-            from-cyan-500
-            to-blue-600
-
-            flex
-            items-center
-            justify-center
-
-            font-bold
-          "
-        >
-          S
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 font-bold">
+          {avatar}
         </div>
-
       </div>
 
     </header>

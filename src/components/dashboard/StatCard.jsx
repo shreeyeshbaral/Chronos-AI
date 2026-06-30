@@ -30,9 +30,11 @@ function StatCard({
 
     <div
       className="
-        bg-slate-900
+        bg-white
+        dark:bg-slate-900
         border
-        border-slate-800
+        border-slate-200
+        dark:border-slate-800
 
         rounded-2xl
 
@@ -50,13 +52,13 @@ function StatCard({
 
         <div>
 
-          <p className="text-slate-400">
+          <p className="text-slate-500 dark:text-slate-400">
 
             {title}
 
           </p>
 
-          <h2 className="text-4xl font-bold mt-2">
+          <h2 className="text-4xl font-bold mt-2 text-slate-900 dark:text-white">
 
             {value}
 

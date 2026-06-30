@@ -1,31 +1,23 @@
 /*
 =========================================
 Sidebar Component
------------------------------------------
-Purpose:
-Provides navigation between all pages
-inside the authenticated dashboard.
 =========================================
 */
 
-// ============================
-// Imports
-// ============================
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
 
-import { Link, useLocation } from "react-router-dom";
+import { auth } from "../../firebase/firebaseConfig";
 
 import {
   LayoutDashboard,
   Calendar,
   Bot,
-  ChartColumn,
+  BarChart3,
   Settings,
   LogOut,
+  Brain,
 } from "lucide-react";
-
-// ============================
-// Navigation Items
-// ============================
 
 const menuItems = [
   {
@@ -39,14 +31,19 @@ const menuItems = [
     icon: Calendar,
   },
   {
+    title: "Analytics",
+    path: "/analytics",
+    icon: BarChart3,
+  },
+  {
     title: "AI Assistant",
     path: "/assistant",
     icon: Bot,
   },
   {
-    title: "Analytics",
-    path: "/analytics",
-    icon: ChartColumn,
+    title: "Adaptive Workspace",
+    path: "/adaptive-workspace",
+    icon: Brain,
   },
   {
     title: "Settings",
@@ -55,113 +52,75 @@ const menuItems = [
   },
 ];
 
-// ============================
-// Component
-// ============================
-
-function Sidebar() {
-
-  // Gives us the current URL
+function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      navigate("/login");
+      onClose?.();
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
-    <aside className="w-72 min-h-screen bg-slate-900 border-r border-slate-800 flex flex-col">
+    <aside
+      className={`fixed inset-y-0 left-0 z-30 w-72 transform bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition duration-300 md:static md:translate-x-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="h-full flex flex-col">
+        <div className="border-b border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+          <h1 className="text-3xl font-black tracking-tight">
+            <span className="text-cyan-500">Chronos</span>
+            <span className="text-slate-900 dark:text-white">AI</span>
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">AI Productivity Workspace</p>
+        </div>
 
-      {/* Logo */}
-      <div className="p-8 border-b border-slate-800">
+        <nav className="flex-1 p-4 space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const active = location.pathname === item.path;
 
-        <h1 className="text-3xl font-bold tracking-wide">
-
-          <span className="text-cyan-400">
-            Chronos
-          </span>
-
-          <span className="text-white">
-            AI
-          </span>
-
-        </h1>
-
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-8 space-y-2">
-
-        {menuItems.map((item) => {
-
-          const Icon = item.icon;
-
-          const active = location.pathname === item.path;
-
-          return (
-
-            <Link
-              key={item.title}
-              to={item.path}
-              className={`
-
-                flex
-                items-center
-                gap-4
-
-                px-4
-                py-3
-
-                rounded-xl
-
-                transition-all
-                duration-300
-
-                ${
+            return (
+              <Link
+                key={item.title}
+                to={item.path}
+                onClick={() => onClose?.()}
+                className={`flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all ${
                   active
                     ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                }
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white"
+                }`}
+              >
+                <Icon size={20} />
+                {item.title}
+              </Link>
+            );
+          })}
+        </nav>
 
-              `}
-            >
+        <div className="border-t border-slate-200 dark:border-slate-800 p-5 sm:p-6">
+          <div className="mb-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4">
+            <p className="text-xs uppercase tracking-wider text-slate-500">Logged In</p>
+            <p className="mt-2 truncate font-medium text-slate-800 dark:text-white">
+              {auth.currentUser?.displayName || auth.currentUser?.email}
+            </p>
+          </div>
 
-              <Icon size={20} />
-
-              {item.title}
-
-            </Link>
-
-          );
-
-        })}
-
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-slate-800">
-
-        <button
-          className="
-            w-full
-            flex
-            items-center
-            gap-3
-
-            px-4
-            py-3
-
-            rounded-xl
-
-            text-red-400
-            hover:bg-red-500/10
-            transition
-          "
-        >
-
-          <LogOut size={18} />
-
-          Logout
-
-        </button>
-
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center justify-center gap-3 rounded-xl bg-red-500/10 px-4 py-3 text-red-400 transition hover:bg-red-500/20"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
       </div>
-
     </aside>
   );
 }

@@ -13,8 +13,17 @@ import { useAuth } from "../context/AuthContext";
 
 function ProtectedRoute({ children }) {
 
-  // Current logged-in user
-  const { user } = useAuth();
+  // Current logged-in user and auth loading state
+  const { user, loading } = useAuth();
+
+  // Show loading spinner while auth is checking
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-cyan-500"></div>
+      </div>
+    );
+  }
 
   // Redirect if not logged in
   if (!user) {
