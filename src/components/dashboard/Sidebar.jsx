@@ -19,6 +19,8 @@ import {
   Brain,
   ChevronLeft,
   ChevronRight,
+  Trophy,
+  Milestone,
 } from "lucide-react";
 
 const menuItems = [
@@ -36,6 +38,16 @@ const menuItems = [
     title: "Analytics",
     path: "/analytics",
     icon: BarChart3,
+  },
+  {
+    title: "Goals & Habits",
+    path: "/habits",
+    icon: Trophy,
+  },
+  {
+    title: "AI Planner",
+    path: "/planner",
+    icon: Milestone,
   },
   {
     title: "AI Assistant",

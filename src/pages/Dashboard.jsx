@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import { useNeuroTheme } from "../context/NeuroThemeContext";
+import { askGemini } from "../ai/gemini";
 
 import Greeting from "../components/dashboard/Greeting";
 import StatCard from "../components/dashboard/StatCard";
@@ -33,6 +34,7 @@ import Topbar from "../components/dashboard/Topbar";
 import {
   deleteTask,
   toggleTaskCompletion,
+  updateTask,
 } from "../services/taskService";
 
 import {
@@ -42,6 +44,11 @@ import {
   TrendingUp,
   ClipboardList,
   Sparkles,
+  AlertTriangle,
+  Info,
+  Sliders,
+  X,
+  Zap,
 } from "lucide-react";
 
 function Dashboard() {
@@ -55,12 +62,82 @@ function Dashboard() {
   const [sortOption, setSortOption] = useState("Latest");
   const [progressTask, setProgressTask] = useState(null);
 
+  // AI Prioritization states
+  const [prioritizing, setPrioritizing] = useState(false);
+  const [proposedPriorities, setProposedPriorities] = useState(null);
+  const [savingPriorities, setSavingPriorities] = useState(false);
+
   const { user, tasks, setTasks } = useAuth();
   const taskSource = useMemo(() => tasks ?? [], [tasks]);
 
   const { mode: neuroMode } = useNeuroTheme();
   const isADHD = neuroMode === "ADHD";
   const isAutism = neuroMode === "Autism";
+
+  // Context-Aware Reminders Alert Engine
+  const alerts = useMemo(() => {
+    const list = [];
+    const todayStr = new Date().toISOString().split("T")[0];
+    
+    // Check overdue tasks
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const overdueCount = taskSource.filter((t) => {
+      if (!t.deadline || t.completed) return false;
+      const d = new Date(t.deadline);
+      return d < todayStart;
+    }).length;
+
+    if (overdueCount > 0) {
+      list.push({
+        id: "overdue",
+        type: "error",
+        text: `🚨 Overdue Tasks: You have ${overdueCount} task${overdueCount > 1 ? "s" : ""} past their deadline. Consider rescheduling them to minimize stress.`,
+      });
+    }
+
+    // Check high priority due today
+    const dueTodayHigh = taskSource.filter(
+      (t) => !t.completed && t.priority === "High" && t.deadline === todayStr
+    ).length;
+
+    if (dueTodayHigh > 0) {
+      list.push({
+        id: "due-today-high",
+        type: "warning",
+        text: `🎯 Today's Focus: You have ${dueTodayHigh} High Priority task${dueTodayHigh > 1 ? "s" : ""} due today. Let's start with these!`,
+      });
+    }
+
+    // Neurotheme recommendations
+    if (neuroMode === "ADHD") {
+      list.push({
+        id: "adhd-focus",
+        type: "info",
+        text: "🧠 ADHD Mindful Alert: Keep animations off. Try launching the 25-minute Focus Session below for your top priority task.",
+      });
+    } else if (neuroMode === "Autism") {
+      list.push({
+        id: "autism-calm",
+        type: "info",
+        text: "💚 Calm Sensory Check: Visual clutter is reduced. Take a 5-minute quiet break for every 2 tasks completed today.",
+      });
+    } else if (neuroMode === "Migraine") {
+      list.push({
+        id: "migraine-relief",
+        type: "info",
+        text: "👁️ Blue-Light & Eyesight check: Warm filters active. Follow the 20-20-20 rule to rest your eyes (look 20 feet away for 20 seconds).",
+      });
+    } else if (neuroMode === "Dyslexia") {
+      list.push({
+        id: "dyslexia-read",
+        type: "info",
+        text: "📖 Readability Tip: Cream background and high readability fonts are enabled to streamline visual scan-paths.",
+      });
+    }
+
+    return list;
+  }, [taskSource, neuroMode]);
 
   // ADHD Focus Timer state & effect
   const [focusTime, setFocusTime] = useState(1500); // 25 mins
@@ -100,6 +177,96 @@ function Dashboard() {
     setTimerRunning(false);
     setFocusTime(1500);
   };
+
+  // ============================
+  // AI Prioritization Logic
+  // ============================
+
+  async function handleAIPrioritize() {
+    const pendingTasks = taskSource.filter((t) => !t.completed);
+    if (pendingTasks.length === 0) {
+      toast.error("You have no pending tasks to prioritize!");
+      return;
+    }
+
+    try {
+      setPrioritizing(true);
+      setProposedPriorities(null);
+
+      const tasksPayload = pendingTasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || "",
+        deadline: t.deadline || "",
+        currentPriority: t.priority || "Medium",
+      }));
+
+      const prompt = `You are a productivity expert AI.
+Prioritize the following tasks based on their importance, deadlines, and urgency. Adjust priorities ("High", "Medium", "Low") to ensure the user stays focused but not overwhelmed.
+Current Active Neuro-accessibility Mode: "${neuroMode || "Default"}" (Use this to prioritize tasks that require focus if in ADHD mode, or suggest a steady pace if in Autism mode).
+
+Tasks list:
+${JSON.stringify(tasksPayload, null, 2)}
+
+Respond ONLY with a valid JSON array of objects, with no markdown code fences, in this exact format:
+[
+  {
+    "id": "task_id_here",
+    "proposedPriority": "High/Medium/Low",
+    "reason": "Short 1-sentence justification why"
+  },
+  ...
+]`;
+
+      const responseText = await askGemini(prompt);
+      let jsonStr = responseText.trim();
+      const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) jsonStr = jsonMatch[1].trim();
+
+      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
+      if (arrayMatch) jsonStr = arrayMatch[0];
+
+      const suggestions = JSON.parse(jsonStr);
+
+      // Map task details back to suggestion list
+      const mappedSuggestions = suggestions.map((s) => {
+        const originalTask = pendingTasks.find((t) => t.id === s.id);
+        return {
+          id: s.id,
+          title: originalTask ? originalTask.title : "Unknown Task",
+          currentPriority: originalTask ? (originalTask.priority || "Medium") : "Medium",
+          proposedPriority: s.proposedPriority,
+          reason: s.reason,
+        };
+      });
+
+      setProposedPriorities(mappedSuggestions);
+      toast.success("AI Priorities compiled!");
+    } catch (error) {
+      console.error("AI Prioritize error:", error);
+      toast.error("AI Prioritizer failed to parse suggestions.");
+    } finally {
+      setPrioritizing(false);
+    }
+  }
+
+  async function handleApplyPriorities() {
+    if (!proposedPriorities || proposedPriorities.length === 0) return;
+
+    try {
+      setSavingPriorities(true);
+      const updatePromises = proposedPriorities.map((item) =>
+        updateTask(item.id, { priority: item.proposedPriority })
+      );
+      await Promise.all(updatePromises);
+      toast.success("AI priorities applied successfully!");
+      setProposedPriorities(null);
+    } catch (error) {
+      toast.error("Failed to apply new priorities.");
+    } finally {
+      setSavingPriorities(false);
+    }
+  }
 
   // ============================
   // Delete Task
@@ -239,6 +406,33 @@ function Dashboard() {
         userName={user?.displayName || "User"}
       />
 
+      {/* Context-Aware Reminders Alert Center */}
+      {alerts.length > 0 && (
+        <div className="mb-8 mt-6 space-y-3">
+          {alerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`rounded-2xl border px-5 py-4 flex items-center justify-between shadow-sm animate-fadeIn ${
+                alert.type === "error"
+                  ? "border-red-500/25 bg-red-500/5 text-red-400"
+                  : alert.type === "warning"
+                  ? "border-yellow-500/25 bg-amber-500/5 text-yellow-500"
+                  : "border-cyan-500/25 bg-cyan-500/5 text-cyan-400"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {alert.type === "error" || alert.type === "warning" ? (
+                  <AlertTriangle size={18} />
+                ) : (
+                  <Info size={18} />
+                )}
+                <span className="text-xs sm:text-sm font-medium">{alert.text}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
 
         <StatCard
@@ -347,6 +541,32 @@ function Dashboard() {
             </label>
 
             <button
+              onClick={handleAIPrioritize}
+              disabled={prioritizing}
+              className="
+                rounded-xl
+                border
+                border-cyan-500/30
+                bg-cyan-500/5
+                text-cyan-400
+                px-5
+                py-3
+                font-semibold
+                transition
+                hover:bg-cyan-500
+                hover:text-slate-950
+                cursor-pointer
+                disabled:opacity-50
+                flex
+                items-center
+                gap-1.5
+              "
+            >
+              <Sparkles size={16} />
+              {prioritizing ? "Prioritizing..." : "AI Prioritize"}
+            </button>
+
+            <button
               onClick={() => {
                 setEditTask(null);
                 setIsModalOpen(true);
@@ -452,6 +672,69 @@ function Dashboard() {
         onClose={handleCloseProgress}
         task={progressTask}
       />
+
+      {/* AI Prioritization Proposal Modal */}
+      {proposedPriorities && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-5 select-none">
+          <div className="w-[95vw] md:w-full md:max-w-2xl rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 p-6">
+              <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                <Sparkles className="text-cyan-500 animate-pulse" size={22} />
+                AI Task Prioritization Suggestions
+              </h2>
+              <button
+                onClick={() => setProposedPriorities(null)}
+                className="rounded-lg p-2 hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 max-h-[50vh] overflow-y-auto space-y-4">
+              <p className="text-xs text-slate-400 mb-2">
+                Gemini has analyzed your task deadlines and descriptions to recommend priority adjustments. Review recommendations below:
+              </p>
+              {proposedPriorities.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-slate-850 bg-slate-950/40 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white text-sm">{item.title}</h4>
+                    <p className="mt-1 text-xs text-slate-500">{item.reason}</p>
+                  </div>
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-500">{item.currentPriority}</span>
+                      <ArrowRight size={12} className="text-slate-650" />
+                      <span className={`font-bold px-2 py-0.5 rounded ${
+                        item.proposedPriority === "High" ? "bg-red-500/10 text-red-400 border border-red-500/20" :
+                        item.proposedPriority === "Medium" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                        "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                      }`}>
+                        {item.proposedPriority}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-slate-850 p-6">
+              <button
+                onClick={() => setProposedPriorities(null)}
+                className="rounded-xl border border-slate-800 bg-slate-950 px-5 py-3 hover:bg-slate-850 text-xs font-semibold cursor-pointer"
+              >
+                Discard Suggestions
+              </button>
+              <button
+                disabled={savingPriorities}
+                onClick={handleApplyPriorities}
+                className="rounded-xl bg-cyan-500 text-slate-950 px-6 py-3 font-bold text-xs hover:bg-cyan-400 transition cursor-pointer disabled:opacity-50"
+              >
+                {savingPriorities ? "Applying..." : "Apply AI Suggestions"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </DashboardLayout>
     

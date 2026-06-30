@@ -14,6 +14,8 @@ import Assistant from "../pages/Assistant";
 import Analytics from "../pages/Analytics";
 import Settings from "../pages/Settings";
 import AdaptiveWorkspace from "../pages/AdaptiveWorkspace";
+import Habits from "../pages/Habits";
+import Planner from "../pages/Planner";
 import NotFound from "../pages/NotFound";
 
 import ProtectedRoute from "./ProtectedRoute";
@@ -57,6 +59,24 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Analytics />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/habits"
+          element={
+            <ProtectedRoute>
+              <Habits />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/planner"
+          element={
+            <ProtectedRoute>
+              <Planner />
             </ProtectedRoute>
           }
         />

@@ -5,10 +5,12 @@ Chronos AI Assistant
 */
 
 import { useState, useRef, useEffect } from "react";
-import { SendHorizontal, Bot, User, Copy, Trash2 } from "lucide-react";
+import { SendHorizontal, Bot, User, Copy, Trash2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { askGemini } from "../ai/gemini";
 import toast from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { useNavigate } from "react-router-dom";
+import { createTask } from "../services/taskService";
 
 const initialMessages = [
   {
@@ -23,6 +25,11 @@ function Assistant() {
   const [messages, setMessages] = useState(initialMessages);
   const [copiedIndex, setCopiedIndex] = useState(null);
 
+  const navigate = useNavigate();
+  const [isListening, setIsListening] = useState(false);
+  const [voiceReplyEnabled, setVoiceReplyEnabled] = useState(false);
+  const recognitionRef = useRef(null);
+
   const suggestedPrompts = [
     "Help me plan a productive workday.",
     "Create a task list for a product launch.",
@@ -30,6 +37,126 @@ function Assistant() {
   ];
 
   const bottomRef = useRef(null);
+
+  // Speech Recognition effect
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = "en-US";
+
+      rec.onstart = () => {
+        setIsListening(true);
+      };
+
+      rec.onresult = async (e) => {
+        const text = e.results[0][0].transcript;
+        setPrompt(text);
+        setIsListening(false);
+        
+        // Parse voice commands
+        const lowerText = text.toLowerCase().trim();
+        
+        if (lowerText.startsWith("add task ") || lowerText.startsWith("create task ")) {
+          const taskTitle = text.slice(9).trim();
+          if (taskTitle) {
+            try {
+              await createTask({ title: taskTitle, priority: "Medium", deadline: "" });
+              toast.success(`Task created: "${taskTitle}"`);
+              const replyText = `I have successfully created the task: "${taskTitle}".`;
+              setMessages((prev) => [
+                ...prev,
+                { role: "user", text },
+                { role: "assistant", text: replyText },
+              ]);
+              if (voiceReplyEnabled) speakText(replyText);
+            } catch {
+              toast.error("Failed to create task via voice.");
+            }
+            setPrompt("");
+            return;
+          }
+        }
+        
+        if (lowerText === "clear chat") {
+          handleClearChat();
+          toast.success("Chat cleared!");
+          setPrompt("");
+          return;
+        }
+
+        if (lowerText === "go to calendar" || lowerText === "show calendar") {
+          navigate("/calendar");
+          setPrompt("");
+          return;
+        }
+
+        if (lowerText === "go to habits" || lowerText === "show habits" || lowerText === "go to goals" || lowerText === "show goals") {
+          navigate("/habits");
+          setPrompt("");
+          return;
+        }
+
+        if (lowerText === "go to dashboard" || lowerText === "show dashboard" || lowerText === "go to main page") {
+          navigate("/dashboard");
+          setPrompt("");
+          return;
+        }
+
+        if (lowerText === "go to planner" || lowerText === "show planner" || lowerText === "go to roadmap") {
+          navigate("/planner");
+          setPrompt("");
+          return;
+        }
+      };
+
+      rec.onerror = (e) => {
+        console.error("Speech Recognition Error:", e);
+        setIsListening(false);
+        toast.error("Voice recognition error.");
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, [navigate, voiceReplyEnabled]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast.error("Web Speech API is not supported in this browser. Please try Chrome or Safari.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      setPrompt("");
+      recognitionRef.current.start();
+    }
+  };
+
+  const speakText = (text) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel(); // Stop any ongoing speech
+    
+    // Strip markdown code/bold blocks from speech text to make it sound natural
+    const cleanText = text
+      .replace(/```[\s\S]*?```/g, "Code block omitted.")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/\*(.+?)\*/g, "$1")
+      .replace(/[*-]/g, "");
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
 
   function escapeHtml(raw) {
     return raw
@@ -116,6 +243,10 @@ function Assistant() {
           text: reply,
         },
       ]);
+
+      if (voiceReplyEnabled) {
+        speakText(reply);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -145,13 +276,28 @@ function Assistant() {
               </p>
             </div>
 
-            <button
-              onClick={handleClearChat}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs sm:text-sm font-medium text-slate-200 transition hover:border-cyan-500 hover:text-white cursor-pointer"
-            >
-              <Trash2 size={14} />
-              Clear
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setVoiceReplyEnabled(!voiceReplyEnabled)}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm font-medium transition cursor-pointer ${
+                  voiceReplyEnabled
+                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                }`}
+                title={voiceReplyEnabled ? "Disable AI voice reply" : "Enable AI voice reply"}
+              >
+                {voiceReplyEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                <span className="hidden sm:inline">Voice Mode</span>
+              </button>
+
+              <button
+                onClick={handleClearChat}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs sm:text-sm font-medium text-slate-200 transition hover:border-cyan-500 hover:text-white cursor-pointer"
+              >
+                <Trash2 size={14} />
+                Clear
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2 overflow-x-auto">
@@ -271,6 +417,31 @@ function Assistant() {
                 max-h-24
               "
             />
+
+            <button
+              onClick={toggleListening}
+              type="button"
+              className={`
+                flex
+                h-11
+                w-11
+                items-center
+                justify-center
+                rounded-xl
+                transition
+                flex-shrink-0
+                cursor-pointer
+                border
+                ${
+                  isListening
+                    ? "bg-red-500/10 border-red-500/40 text-red-450 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:border-cyan-500 hover:text-white"
+                }
+              `}
+              title={isListening ? "Listening... click to stop" : "Start speech input"}
+            >
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
 
             <button
               disabled={loading || !prompt.trim()}

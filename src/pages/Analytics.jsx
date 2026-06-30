@@ -18,6 +18,8 @@ Features:
 */
 
 import { useState, useEffect, useMemo } from "react";
+import toast from "react-hot-toast";
+import { askGemini } from "../ai/gemini";
 import {
   PieChart,
   Pie,
@@ -340,6 +342,8 @@ function SkeletonChart() {
 function Analytics() {
   const { tasks, tasksLoading: loading } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
+  const [deepRecommendations, setDeepRecommendations] = useState([]);
+  const [analyzingPatterns, setAnalyzingPatterns] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -357,7 +361,7 @@ function Analytics() {
     [tasks]
   );
 
-  const pendingTasks = tasks.length - completedTasks;
+  const pendingTasks = useMemo(() => tasks.length - completedTasks, [tasks, completedTasks]);
 
   const productivity = useMemo(() => {
     if (!tasks.length) return 0;
@@ -377,14 +381,61 @@ function Analytics() {
     }).length;
   }, [tasks]);
 
-
-
-  // Average Progress
   const avgProgress = useMemo(() => {
     if (!tasks.length) return 0;
     const total = tasks.reduce((sum, t) => sum + (t.progress || 0), 0);
     return Math.round(total / tasks.length);
   }, [tasks]);
+
+  async function handleRunDeepAIAnalysis() {
+    if (tasks.length === 0) {
+      toast.error("No data to analyze yet!");
+      return;
+    }
+
+    try {
+      setAnalyzingPatterns(true);
+      const prompt = `You are a professional behavioral psychologist and executive productivity advisor.
+Analyze the user's workload performance metrics:
+- Total Tasks: ${tasks.length}
+- Completed: ${completedTasks}
+- Pending: ${pendingTasks}
+- Productivity: ${productivity}%
+- Overdue: ${overdueTasks}
+- High Priority Pending: ${highPriorityTasks}
+- Average Task Progress: ${avgProgress}%
+
+Provide exactly 3 actionable, deep productivity recommendations that will make them more efficient. Make them concrete, referencing the metrics (e.g. if overdue count is high, or high priority tasks are pending).
+Keep each recommendation to a maximum of 2 sentences.
+
+Respond ONLY with a valid JSON array of objects, with no markdown code fences:
+[
+  {
+    "type": "success/warning/info/error",
+    "emoji": "💡",
+    "text": "Recommendation text..."
+  },
+  ...
+]`;
+
+      const responseText = await askGemini(prompt);
+      let jsonStr = responseText.trim();
+      const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) jsonStr = jsonMatch[1].trim();
+
+      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
+      if (arrayMatch) jsonStr = arrayMatch[0];
+
+      const suggestions = JSON.parse(jsonStr);
+      setDeepRecommendations(suggestions);
+      toast.success("Deep AI Analysis completed!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Deep AI Analysis was unable to compile suggestions.");
+    } finally {
+      setAnalyzingPatterns(false);
+    }
+  }
 
   // Chart Data: Completed vs Pending
   const pieChartData = [
@@ -759,17 +810,59 @@ function Analytics() {
         </div>
 
         {/* Insights */}
-        <div className="lg:col-span-2">
-          <h2 className="mb-6 text-2xl font-bold">Insights & Recommendations</h2>
-          {loading ? (
-            <SkeletonChart />
-          ) : (
-            <Insights
-              tasks={tasks}
-              pendingTasks={pendingTasks}
-              productivity={productivity}
-            />
-          )}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Insights & Recommendations</h2>
+              <button
+                onClick={handleRunDeepAIAnalysis}
+                disabled={analyzingPatterns}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-500 text-slate-950 px-4 py-2.5 text-xs font-bold hover:bg-cyan-400 disabled:opacity-50 transition cursor-pointer"
+              >
+                <Sparkles size={14} />
+                {analyzingPatterns ? "Analyzing Patterns..." : "Run Deep AI Analysis"}
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="h-28 bg-slate-800 animate-pulse rounded-2xl" />
+            ) : (
+              <div className="space-y-4">
+                <Insights
+                  tasks={tasks}
+                  pendingTasks={pendingTasks}
+                  productivity={productivity}
+                />
+
+                {deepRecommendations.length > 0 && (
+                  <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                    <h3 className="text-sm font-extrabold uppercase tracking-wider text-cyan-500 mb-4 flex items-center gap-1.5">
+                      <Sparkles size={16} />
+                      AI Performance Review
+                    </h3>
+                    {deepRecommendations.map((item, index) => {
+                      const colorMap = {
+                        success: "text-emerald-450 bg-emerald-500/10 border-emerald-500/20",
+                        warning: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+                        error: "text-red-400 bg-red-500/10 border-red-500/20",
+                        info: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+                      };
+                      const colorClass = colorMap[item.type] || colorMap.info;
+                      return (
+                        <div
+                          key={index}
+                          className={`rounded-2xl border p-4 flex gap-3 ${colorClass}`}
+                        >
+                          <span className="text-lg flex-shrink-0">{item.emoji || "💡"}</span>
+                          <p className="text-xs leading-relaxed font-medium">{item.text}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
