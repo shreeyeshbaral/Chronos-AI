@@ -22,11 +22,11 @@ function Hero() {
         ⚡ AI Powered Productivity
       </span>
 
-      <h1 className="text-6xl font-bold mt-8">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mt-8">
         Chronos AI
       </h1>
 
-      <h2 className="text-3xl text-slate-300 mt-4">
+      <h2 className="text-xl sm:text-2xl md:text-3xl text-slate-300 mt-4">
         Never Miss Another Deadline
       </h2>
 

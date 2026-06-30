@@ -115,12 +115,16 @@ function ProgressModal({ isOpen, onClose, task }) {
     >
       <div
         className="
-          w-full max-w-2xl rounded-3xl border border-slate-700
+          w-[95vw]
+          md:w-full
+          md:max-w-lg
+          lg:max-w-2xl
+          rounded-3xl border border-slate-700
           bg-slate-900 shadow-2xl
         "
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 p-7">
+        <div className="flex items-center justify-between border-b border-slate-800 p-5 sm:p-6 md:p-7">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-purple-500/10 p-2.5">
               <Brain size={20} className="text-purple-400" />
@@ -145,7 +149,7 @@ function ProgressModal({ isOpen, onClose, task }) {
         </div>
 
         {/* Body */}
-        <div className="space-y-6 p-7">
+        <div className="space-y-6 p-5 sm:p-6 md:p-7">
           {/* Current Progress */}
           {(task.progress != null && task.progress > 0) && (
             <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">

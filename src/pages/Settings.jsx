@@ -9,7 +9,6 @@ import { getAuth, updateProfile } from "firebase/auth";
 import toast from "react-hot-toast";
 
 import DashboardLayout from "../layouts/DashboardLayout";
-import { useTheme } from "../context/ThemeContext";
 
 import {
   User,
@@ -21,7 +20,6 @@ import {
 function Settings() {
   const auth = getAuth();
   const user = auth.currentUser;
-  const { theme, selectTheme } = useTheme();
 
   const [name, setName] = useState(
     user?.displayName || ""
@@ -59,12 +57,12 @@ function Settings() {
               <p className="text-sm uppercase tracking-[0.3em] text-cyan-500 font-semibold">Settings</p>
               <h1 className="mt-3 text-4xl font-bold text-slate-900 dark:text-white">Customize your Chronos profile</h1>
               <p className="mt-2 max-w-2xl text-slate-600 dark:text-slate-400">
-                Update your display name, review account info, and manage your workspace appearance.
+                Update your display name and review account info.
               </p>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900 p-5 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-cyan-500 text-2xl font-bold text-slate-950">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-cyan-500 text-2xl font-bold text-slate-950 leading-none">
                   {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div>
@@ -76,7 +74,7 @@ function Settings() {
           </div>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-2">
+        <div className="grid gap-8 grid-cols-1">
           {/* Profile Card */}
           <div className="rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-8 shadow-sm">
             <div className="mb-6 flex items-center gap-3">
@@ -144,54 +142,6 @@ function Settings() {
               <p className="text-slate-600 dark:text-slate-400">
                 Your account is authenticated securely using Firebase Authentication.
               </p>
-            </div>
-
-            {/* Theme Card */}
-            <div className="rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-8 shadow-sm">
-              <div className="mb-6 flex items-center gap-3">
-                <Shield className="text-cyan-500" />
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Theme</h2>
-              </div>
-
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Choose how Chronos AI appears on your device. Changes apply instantly.
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-3">
-                <button
-                  onClick={() => selectTheme("Light")}
-                  className={`rounded-3xl border px-4 py-4 text-left transition ${
-                    theme === "Light"
-                      ? "border-cyan-500 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold shadow-sm"
-                      : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
-                  }`}
-                >
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Light</p>
-                  <p className="mt-2 text-base">Classic</p>
-                </button>
-                <button
-                  onClick={() => selectTheme("Dark")}
-                  className={`rounded-3xl border px-4 py-4 text-left transition ${
-                    theme === "Dark"
-                      ? "border-cyan-500 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold shadow-sm"
-                      : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
-                  }`}
-                >
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Dark</p>
-                  <p className="mt-2 text-base">Modern</p>
-                </button>
-                <button
-                  onClick={() => selectTheme("System")}
-                  className={`rounded-3xl border px-4 py-4 text-left transition ${
-                    theme === "System"
-                      ? "border-cyan-500 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold shadow-sm"
-                      : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
-                  }`}
-                >
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Auto</p>
-                  <p className="mt-2 text-base">System</p>
-                </button>
-              </div>
             </div>
           </div>
         </div>

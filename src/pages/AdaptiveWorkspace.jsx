@@ -108,7 +108,7 @@ function AdaptiveWorkspace() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {neuroModes.map((item) => {
           const Icon = item.icon;
           const isActive = activeMode === item.key;
@@ -176,8 +176,8 @@ function AdaptiveWorkspace() {
                   onClick={() => selectMode(item.key)}
                   className={`w-full rounded-xl py-3 text-sm font-bold transition-all ${
                     isActive
-                      ? "bg-cyan-500 text-slate-950 font-extrabold cursor-default shadow-md"
-                      : "bg-slate-800 text-slate-200 hover:bg-cyan-500 hover:text-slate-950"
+                      ? "bg-cyan-500 text-slate-950 font-extrabold cursor-default shadow-md activated-btn"
+                      : "bg-slate-800 text-slate-200 hover:bg-cyan-500 hover:text-slate-950 activate-mode-btn"
                   }`}
                 >
                   {isActive ? "Activated" : "Activate Mode"}

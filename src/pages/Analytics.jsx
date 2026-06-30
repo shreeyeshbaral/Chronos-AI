@@ -17,7 +17,7 @@ Features:
 =========================================
 */
 
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -65,17 +65,17 @@ function KPICard({ title, value, icon: Icon, trend, color = "cyan" }) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
-          <p className="mt-2 text-4xl font-bold text-slate-900 dark:text-white">{value}</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400" style={{ lineHeight: 1.4, letterSpacing: 0 }}>{title}</p>
+          <p className="mt-2 text-4xl font-bold text-slate-900 dark:text-white" style={{ lineHeight: 1, letterSpacing: 0 }}>{value}</p>
           {trend && (
-            <p className={`mt-2 text-sm font-medium ${trend > 0 ? "text-green-500 dark:text-green-400" : "text-red-550 dark:text-red-400"}`}>
+            <p className={`mt-2 text-sm font-medium ${trend > 0 ? "text-green-500 dark:text-green-400" : "text-red-555 dark:text-red-400"}`} style={{ lineHeight: 1.4 }}>
               {trend > 0 ? "↑" : "↓"} {Math.abs(trend)}% from last week
             </p>
           )}
         </div>
-        <div className={`${colorClasses[color]} rounded-2xl p-4`}>
+        <div className={`${colorClasses[color]} rounded-2xl p-4 flex-shrink-0`} style={{ lineHeight: 1 }}>
           <Icon size={32} />
         </div>
       </div>
@@ -99,11 +99,11 @@ function ProgressRing({ title, percentage, color = "cyan" }) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
-      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
+      <p className="text-sm font-medium text-slate-500 dark:text-slate-400" style={{ lineHeight: 1.4, letterSpacing: 0 }}>{title}</p>
 
       <div className="mt-4 flex flex-col items-center">
         <div className="relative h-32 w-32">
-          <svg className="h-full w-full -rotate-90 transform">
+          <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90 transform">
             <circle
               cx="64"
               cy="64"
@@ -127,12 +127,12 @@ function ProgressRing({ title, percentage, color = "cyan" }) {
             />
           </svg>
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">{Math.round(percentage)}%</span>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white" style={{ lineHeight: 1, letterSpacing: 0 }}>{Math.round(percentage)}%</span>
           </div>
         </div>
 
-        <p className="mt-4 text-sm text-slate-650 dark:text-slate-400">
+        <p className="mt-4 text-sm text-slate-650 dark:text-slate-400" style={{ lineHeight: 1.4, letterSpacing: 0 }}>
           {percentage < 30 && "Needs attention"}
           {percentage >= 30 && percentage < 60 && "Keep improving"}
           {percentage >= 60 && percentage < 80 && "Good progress"}
@@ -339,6 +339,14 @@ function SkeletonChart() {
 
 function Analytics() {
   const { tasks, tasksLoading: loading } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // ============================
   // Calculations
@@ -498,10 +506,10 @@ function Analytics() {
       <section className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Key Metrics</h2>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
           {loading ? (
             <>
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                 <SkeletonKPICard key={i} />
               ))}
             </>
@@ -566,14 +574,14 @@ function Analytics() {
             <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
               <h3 className="font-semibold text-slate-900 dark:text-white">Completion Status</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
+                <PieChart margin={isMobile ? { top: 10, right: 10, left: 10, bottom: 10 } : { top: 10, right: 30, left: 30, bottom: 10 }}>
                   <Pie
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={100}
+                    labelLine={!isMobile}
+                    label={isMobile ? ({ value }) => `${value}` : ({ name, value }) => `${name}: ${value}`}
+                    outerRadius={isMobile ? 80 : 100}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -601,10 +609,10 @@ function Analytics() {
             <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
               <h3 className="font-semibold text-slate-900 dark:text-white">Tasks by Priority</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={priorityData}>
+                <BarChart data={priorityData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 0 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
-                  <XAxis dataKey="priority" stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
-                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
+                  <XAxis dataKey="priority" stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
+                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--bg-card)",
@@ -626,10 +634,10 @@ function Analytics() {
             <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
               <h3 className="font-semibold text-slate-900 dark:text-white">Tasks Created (Last 7 Days)</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={tasksOverTimeData}>
+                <LineChart data={tasksOverTimeData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 0 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
-                  <XAxis dataKey="date" stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
-                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
+                  <XAxis dataKey="date" stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
+                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--bg-card)",
@@ -657,7 +665,7 @@ function Analytics() {
             <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 p-6 backdrop-blur shadow-sm">
               <h3 className="font-semibold text-slate-900 dark:text-white">Productivity Trend (Last 7 Days)</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={productivityTrendData}>
+                <AreaChart data={productivityTrendData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 0 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorProductivity" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
@@ -665,8 +673,8 @@ function Analytics() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
-                  <XAxis dataKey="date" stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
-                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
+                  <XAxis dataKey="date" stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
+                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--bg-card)",
@@ -695,10 +703,10 @@ function Analytics() {
               <h3 className="font-semibold text-slate-900 dark:text-white">AI Progress Distribution</h3>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">How tasks are distributed by AI-estimated progress</p>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={progressDistData}>
+                <BarChart data={progressDistData} margin={isMobile ? { top: 10, right: 10, left: -25, bottom: 0 } : { top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
-                  <XAxis dataKey="range" stroke="currentColor" className="text-slate-400 dark:text-slate-500" />
-                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" allowDecimals={false} />
+                  <XAxis dataKey="range" stroke="currentColor" className="text-slate-400 dark:text-slate-500" tick={{ fontSize: 11 }} />
+                  <YAxis stroke="currentColor" className="text-slate-400 dark:text-slate-500" allowDecimals={false} tick={{ fontSize: 11 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "var(--bg-card)",
@@ -722,7 +730,7 @@ function Analytics() {
       {/* Progress Rings & Insights */}
       <section className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Progress Rings */}
-        <div className="space-y-6 lg:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6 lg:col-span-1">
           {loading ? (
             <>
               <SkeletonChart />

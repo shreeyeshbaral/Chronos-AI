@@ -6,7 +6,7 @@ function AICard() {
       {/* Gradient background effect */}
       <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-3xl blur opacity-75" />
 
-      <div className="relative bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+      <div className="relative bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
         
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -19,12 +19,12 @@ function AICard() {
         </div>
 
         {/* Content */}
-        <p className="mt-4 text-slate-300 leading-7">
+        <p className="mt-4 text-slate-300 leading-7 text-sm sm:text-base">
           Chronos AI analyzes your tasks in real-time to provide smart suggestions, predict deadline risks, and help you stay ahead of your workload.
         </p>
 
         {/* Features Grid */}
-        <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-3">
             <p className="text-xs text-slate-400 font-medium">Smart Scheduling</p>
             <p className="mt-2 text-sm text-cyan-400 font-semibold">Auto-Prioritize</p>

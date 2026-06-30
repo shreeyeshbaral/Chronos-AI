@@ -174,7 +174,7 @@ function TaskCard({
             Progress
           </span>
           <span
-            className={`text-sm font-bold ${
+            className={`text-sm font-bold leading-none ${
               progress >= 80
                 ? "text-green-400"
                 : progress >= 50
@@ -205,7 +205,7 @@ function TaskCard({
 
       {/* Footer */}
 
-      <div className="mt-5 flex items-center justify-between">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
 
         <button
           onClick={() => onToggleComplete?.(id, completed)}

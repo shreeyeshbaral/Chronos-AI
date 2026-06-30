@@ -239,7 +239,7 @@ function Dashboard() {
         userName={user?.displayName || "User"}
       />
 
-      <section className={`grid grid-cols-1 md:grid-cols-2 ${isAutism ? "xl:grid-cols-3" : "xl:grid-cols-5"} gap-6`}>
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
 
         <StatCard
           title="Productivity"
@@ -259,21 +259,17 @@ function Dashboard() {
           icon={Clock3}
         />
 
-        {!isAutism && (
-          <>
-            <StatCard
-              title="Pending"
-              value={pendingTasks}
-              icon={AlarmClock}
-            />
+        <StatCard
+          title="Pending"
+          value={pendingTasks}
+          icon={AlarmClock}
+        />
 
-            <StatCard
-              title="Avg Progress"
-              value={`${avgProgress}%`}
-              icon={Sparkles}
-            />
-          </>
-        )}
+        <StatCard
+          title="Avg Progress"
+          value={`${avgProgress}%`}
+          icon={Sparkles}
+        />
 
       </section>
 

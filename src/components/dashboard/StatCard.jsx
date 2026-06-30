@@ -48,17 +48,17 @@ function StatCard({
       "
     >
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
 
         <div>
 
-          <p className="text-slate-500 dark:text-slate-400">
+          <p className="text-slate-500 dark:text-slate-400" style={{ lineHeight: 1.4, letterSpacing: 0 }}>
 
             {title}
 
           </p>
 
-          <h2 className="text-4xl font-bold mt-2 text-slate-900 dark:text-white">
+          <h2 className="text-4xl font-bold mt-2 text-slate-900 dark:text-white" style={{ lineHeight: 1, letterSpacing: 0 }}>
 
             {value}
 
@@ -69,13 +69,12 @@ function StatCard({
         <div
           className="
             bg-cyan-500/10
-
             p-4
-
             rounded-xl
-
             text-cyan-400
+            flex-shrink-0
           "
+          style={{ lineHeight: 1 }}
         >
 
           <Icon size={28} />

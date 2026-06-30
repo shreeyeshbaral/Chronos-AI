@@ -141,8 +141,10 @@ function TaskModal({ isOpen, onClose, editTask }) {
     >
       <div
         className="
-          w-full
-          max-w-2xl
+          w-[95vw]
+          md:w-full
+          md:max-w-lg
+          lg:max-w-2xl
           rounded-3xl
           border
           border-slate-700
@@ -156,7 +158,7 @@ function TaskModal({ isOpen, onClose, editTask }) {
       >
         {/* Header */}
 
-        <div className="flex items-center justify-between border-b border-slate-800 p-7">
+        <div className="flex items-center justify-between border-b border-slate-800 p-5 sm:p-6 md:p-7">
 
           <h2 className="text-2xl font-bold">
             {editTask?.id ? "Edit Task" : "Create New Task"}
@@ -173,7 +175,7 @@ function TaskModal({ isOpen, onClose, editTask }) {
 
         {/* Body */}
 
-        <div className="space-y-6 p-7">
+        <div className="space-y-6 p-5 sm:p-6 md:p-7">
 
           {/* Title */}
 
@@ -302,7 +304,7 @@ function TaskModal({ isOpen, onClose, editTask }) {
 
         {/* Footer */}
 
-        <div className="flex justify-end gap-3 border-t border-slate-800 p-7">
+        <div className="flex justify-end gap-3 border-t border-slate-800 p-5 sm:p-6 md:p-7">
 
           <button
             disabled={saving}

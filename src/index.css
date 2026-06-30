@@ -54,10 +54,10 @@
   --neuro-bg: #EAF7F7;
   --neuro-card: #D7F3E3;
   --neuro-border: #BCE2CF;
-  --neuro-primary: #2A9D8F;
-  --neuro-accent: #4CBFA6;
-  --neuro-text: #264653;
-  --neuro-text-muted: #52796F;
+  --neuro-primary: #1F7D72;
+  --neuro-accent: #175E56;
+  --neuro-text: #172D35;
+  --neuro-text-muted: #2E5C51;
 
   --neuro-shadow: none;
 }
@@ -81,10 +81,10 @@
   --neuro-bg: #FFFDF5;
   --neuro-card: #FAF6EB;
   --neuro-border: #E8E0CB;
-  --neuro-primary: #2563EB;
-  --neuro-accent: #0F766E;
-  --neuro-text: #111827;
-  --neuro-text-muted: #374151;
+  --neuro-primary: #1E40AF;
+  --neuro-accent: #0D9488;
+  --neuro-text: #0F172A;
+  --neuro-text-muted: #27303F;
 
   --neuro-font-family: 'Lexend', sans-serif;
   --neuro-line-height: 1.9;
@@ -157,8 +157,14 @@ body,
 
 /* Text color mappings */
 .text-white,
+.text-slate-50,
+.text-slate-100,
+.text-slate-200,
+.text-slate-300,
+.text-slate-350,
 .text-slate-900,
 .text-slate-800,
+.text-slate-705,
 .text-slate-700,
 .text-slate-950 {
   color: var(--neuro-text) !important;
@@ -171,11 +177,12 @@ body,
   color: var(--neuro-text-muted) !important;
 }
 
-/* Icon colors mapping */
-svg.text-slate-400,
-svg.text-slate-550,
-svg.text-slate-500 {
-  color: var(--neuro-text-muted) !important;
+.text-cyan-300,
+.text-cyan-400,
+.text-cyan-505,
+.text-cyan-500,
+.text-cyan-600 {
+  color: var(--neuro-primary) !important;
 }
 
 /* Ensure inputs, select boxes and details use correct colors */
@@ -185,6 +192,18 @@ textarea {
   background-color: var(--neuro-card) !important;
   color: var(--neuro-text) !important;
   border-color: var(--neuro-border) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--neuro-text-muted) !important;
+  opacity: 0.8 !important;
+}
+
+/* Target Recharts axes ticks and legends for readable color variables */
+.recharts-cartesian-axis-tick text,
+.recharts-legend-item-text {
+  fill: var(--neuro-text-muted) !important;
 }
 
 /* Smooth transitions globally */
@@ -261,4 +280,110 @@ animation-delay:2s;
 
 animation-delay:4s;
 
+}
+
+[data-neuro-mode="Autism"] .activated-btn,
+[data-neuro-mode="Dyslexia"] .activated-btn {
+  color: #FFFFFF !important;
+}
+
+[data-neuro-mode="Autism"] .activate-mode-btn,
+[data-neuro-mode="Dyslexia"] .activate-mode-btn {
+  color: #FFFFFF !important;
+}
+
+/* =========================================
+   Dyslexia Mode - Container Scaling
+   Keeps font size/line-height/letter-spacing
+   but resizes surrounding elements to match
+   ========================================= */
+
+/* --- Force line-height reset for centered text --- */
+[data-neuro-mode="Dyslexia"] .neuro-center-text,
+[data-neuro-mode="Dyslexia"] .leading-none {
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+/* --- Progress Rings: enlarge circle container --- */
+[data-neuro-mode="Dyslexia"] .relative.h-32.w-32 {
+  height: 10rem !important;
+  width: 10rem !important;
+}
+
+/* --- KPI / Stat Cards: increase padding and equalize heights --- */
+[data-neuro-mode="Dyslexia"] .rounded-2xl.p-6 {
+  padding: 1.75rem !important;
+}
+
+/* --- Sidebar nav items: increase padding for larger text --- */
+[data-neuro-mode="Dyslexia"] nav .rounded-xl.px-4.py-3 {
+  padding-top: 0.875rem !important;
+  padding-bottom: 0.875rem !important;
+  gap: 1.25rem !important;
+}
+
+/* --- Sidebar nav icon size stays consistent --- */
+[data-neuro-mode="Dyslexia"] nav .flex-shrink-0 {
+  min-width: 20px !important;
+}
+
+/* --- Task Card: increase internal padding --- */
+[data-neuro-mode="Dyslexia"] .rounded-3xl.p-6 {
+  padding: 1.75rem !important;
+}
+
+/* --- Topbar: increase height and spacing --- */
+[data-neuro-mode="Dyslexia"] header.border-b {
+  padding-top: 1.25rem !important;
+  padding-bottom: 1.25rem !important;
+}
+
+/* --- Topbar avatar: scale up proportionally --- */
+[data-neuro-mode="Dyslexia"] .h-11.w-11 {
+  height: 3.25rem !important;
+  width: 3.25rem !important;
+}
+
+/* --- Topbar search input: match taller text --- */
+[data-neuro-mode="Dyslexia"] input.rounded-xl {
+  padding-top: 0.875rem !important;
+  padding-bottom: 0.875rem !important;
+}
+
+/* --- Settings avatar: scale proportionally --- */
+[data-neuro-mode="Dyslexia"] .h-16.w-16 {
+  height: 5rem !important;
+  width: 5rem !important;
+}
+
+/* --- Adaptive Workspace mode cards: equalize padding --- */
+[data-neuro-mode="Dyslexia"] .rounded-xl.py-3.text-sm {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* --- Badge / tag pills: prevent overflow --- */
+[data-neuro-mode="Dyslexia"] .rounded-full.px-3.py-1 {
+  padding: 0.375rem 1rem !important;
+}
+
+/* --- Icon background containers: scale up --- */
+[data-neuro-mode="Dyslexia"] .rounded-2xl.p-4.flex-shrink-0,
+[data-neuro-mode="Dyslexia"] .rounded-xl.p-4 {
+  padding: 1.125rem !important;
+}
+
+/* --- Modal containers: add more padding --- */
+[data-neuro-mode="Dyslexia"] .rounded-3xl.p-8 {
+  padding: 2.25rem !important;
+}
+
+/* --- Grid gap consistency for larger content --- */
+[data-neuro-mode="Dyslexia"] .grid.gap-4 {
+  gap: 1.25rem !important;
+}
+
+[data-neuro-mode="Dyslexia"] .grid.gap-6 {
+  gap: 1.75rem !important;
 }

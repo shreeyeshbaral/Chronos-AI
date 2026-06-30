@@ -110,8 +110,6 @@ function Calendar() {
             : "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950"
         }`}
       >
-        <div className="absolute left-0 top-5 h-5 w-5 rounded-full bg-slate-550 dark:bg-slate-950 ring-4 ring-slate-100 dark:ring-slate-900" />
-
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{task.title}</h3>

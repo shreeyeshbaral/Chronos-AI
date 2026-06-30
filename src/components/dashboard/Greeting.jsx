@@ -14,8 +14,18 @@ Features:
 */
 
 import { CalendarDays } from "lucide-react";
+import { useNeuroTheme } from "../../context/NeuroThemeContext";
+
+const nameGradients = {
+  Default: "bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent",
+  ADHD: "bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent",
+  Autism: "bg-gradient-to-r from-teal-500 to-emerald-400 bg-clip-text text-transparent",
+  Migraine: "bg-gradient-to-r from-amber-700 to-orange-400 bg-clip-text text-transparent",
+  Dyslexia: "bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent",
+};
 
 function Greeting({ userName = "User" }) {
+  const { mode } = useNeuroTheme();
   const hour = new Date().getHours();
 
   let greeting = "Good Evening";
@@ -36,6 +46,8 @@ function Greeting({ userName = "User" }) {
     year: "numeric",
   });
 
+  const nameGradient = nameGradients[mode] || nameGradients.Default;
+
   return (
     <section className="mb-10">
 
@@ -47,7 +59,7 @@ function Greeting({ userName = "User" }) {
 
             {greeting},{" "}
 
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <span className={nameGradient}>
               {userName}
             </span>
 
